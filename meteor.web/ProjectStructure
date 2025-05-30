@@ -1,0 +1,27 @@
+meteor-web/
+├── public/
+│   ├── index.html
+│   └── ... (other public assets)
+├── src/
+│   ├── assets/ (for logo, images, etc.)
+│   ├── components/
+│   │   ├── common/ (reusable UI elements)
+│   │   ├── forms/
+│   │   ├── layout/
+│   │   └── specific/ (components for specific pages)
+│   ├── context/
+│   ├── hooks/
+│   ├── pages/
+│   ├── styles/
+│   ├── utils/
+│   ├── firebaseConfig.js
+│   ├── App.js
+│   └── index.js
+├── functions/
+│   ├── package.json
+│   └── index.js
+├── .env.local (example)
+├── firebase.json
+├── firestore.rules
+├── README.md
+└── package.json
