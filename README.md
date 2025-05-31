@@ -1,7 +1,6 @@
 # Meteor
-![meteor icon-2](https://github.com/user-attachments/assets/8449e82a-e871-4a5e-a615-313589360436)
 
-
+![meteor icon-2](https://github.com/user-attachments/assets/5d299d64-e6c0-4b36-afbe-905d9c497598)
 
 **Meteor** is a dynamic mobile and web application designed to bridge the gap between aspiring entrepreneurs and experienced business mentors. Whether you're building your first startup or scaling your fifth, Meteor provides the guidance, support, and network you need to accelerate your journey.
 
