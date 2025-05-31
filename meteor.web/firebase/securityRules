@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users Collection Rules
+    match /users/{userId} {
+      // Anyone can read mentor profiles IF their role is 'mentor' or 'admin' AND they are verified
+      // This allows the /mentor/:id page to fetch public mentor data.
+      allow read: if resource.data.role == 'mentor' && resource.data.isVerified == true;
+
+      // Authenticated users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Authenticated users can create their own profile document on signup
+      // Ensure the created document's ID matches the auth UID
+      allow create: if request.auth != null && request.auth.uid == userId
+                      && request.resource.data.uid == userId
+                      && request.resource.data.role == 'entrepreneur' // Initial role must be entrepreneur
+                      && request.resource.data.onboardingComplete == false; // Initial onboarding status
+
+      // Authenticated users can update their own profile
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Admin users can read, create, update, and delete any user profile
+      // Need to implement admin role check - assumes 'role' field exists and is 'admin'
+      allow read, create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+       // Additional validation on updates:
+       // - Entrepreneurs can update personalityScores and businessGoals only if onboardingComplete is false or they are already entrepreneurs
+       // - Mentors can update bio, industries, experience, availability (after being approved or while applying)
+       // - Prevent non-admins from changing 'role', 'isVerified', 'mentorApplicationStatus', 'rejectionReason'
+       match /{document=**} {
+           allow read, write: if false; // Default deny
+       }
+    }
+
+    // Mentorships Collection Rules
+    match /mentorships/{mentorshipId} {
+      // Authenticated users can read mentorships they are a participant in (either entrepreneurId or mentorId)
+      allow read: if request.auth != null && (resource.data.entrepreneurId == request.auth.uid || resource.data.mentorId == request.auth.uid);
+
+      // Authenticated users (entrepreneurs) can create a new mentorship request
+      // Validate that the sender is the entrepreneur and status is 'pending'
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.entrepreneurId
+                     && request.resource.data.status == 'pending';
+
+      // Authenticated users (mentors) can update the status of a request addressed to them (accept/reject)
+       // Entrepreneurs cannot change status from pending
+      allow update: if request.auth != null && request.auth.uid == resource.data.mentorId
+                      && resource.data.status == 'pending' // Can only update if currently pending
+                      && (request.resource.data.status == 'active' || request.resource.data.status == 'rejected') // Only allow changing to active or rejected
+                      && request.resource.data.entrepreneurId == resource.data.entrepreneurId; // Prevent changing entrepreneurId
+
+
+       // Admin users can read, create, update, delete any mentorship
+       allow read, create, update, delete: if request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+        // Messages subcollection
+        match /messages/{messageId} {
+            // Authenticated users can read messages within a mentorship they are part of
+             allow read: if request.auth != null && (get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.entrepreneurId == request.auth.uid || get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.mentorId == request.auth.uid);
+
+            // Authenticated users who are part of the mentorship can create messages
+             allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid
+                             && (get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.entrepreneurId == request.auth.uid || get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.mentorId == request.auth.uid)
+                             && get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.status == 'active'; // Only allow sending if mentorship is active
+
+
+             // No update or delete for messages typically
+             allow update, delete: if false;
+        }
+    }
+
+    // Admin Settings Collection Rules (for NEO-PI questions)
+    match /admin_settings/{docId} {
+        // Only admin can read and write admin settings
+        allow read, write: if request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+        // Public read access might be needed for the onboarding page to get questions IF they are stored here
+        // If questions are hardcoded on frontend, this rule isn't strictly necessary for that.
+        // If questions are fetched at runtime, add: allow read: if true; (or restrict by auth if questions are sensitive)
+    }
+
+
+    // Default deny for all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
