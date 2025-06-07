@@ -1,6 +1,7 @@
 # Meteor
 
-![meteor icon-2](https://github.com/user-attachments/assets/5d299d64-e6c0-4b36-afbe-905d9c497598)
+![meteor icon](https://github.com/user-attachments/assets/4ec43135-d6e2-421f-b903-ebf5a60e7f47)
+
 
 **Meteor** is a dynamic mobile and web application designed to bridge the gap between aspiring entrepreneurs and experienced business mentors. Whether you're building your first startup or scaling your fifth, Meteor provides the guidance, support, and network you need to accelerate your journey.
 
@@ -35,7 +36,7 @@
 |----------------|-------------------------------|
 | **Frontend**   | SwiftUI (iOS), React (Web)     |
 | **Backend**    | Node.js, Express               |
-| **Database**   | MongoDB                        |
+| **Database**   | Firestore                        |
 | **Authentication** | Firebase Auth, OAuth 2.0     |
 | **Messaging**  | Socket.IO                      |
 | **Deployment** | Vercel (Web), App Store (iOS)  |
